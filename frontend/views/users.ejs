@@ -1,0 +1,91 @@
+<%- include('partials/header', { title: 'Quản lý Users - Todo List' }) %>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header text-primary d-flex justify-content-between align-items-center border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-people me-2"></i>Quản lý Users</h5>
+                <span class="badge bg-primary text-white"><%= users.length %> users</span>
+            </div>
+            <div class="card-body">
+                <% if (users.length === 0) { %>
+                <div class="text-center py-5">
+                    <i class="bi bi-people display-1 text-muted"></i>
+                    <p class="text-muted mt-3">Chưa có user nào.</p>
+                </div>
+                <% } else { %>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Username</th>
+                                <th>Họ tên</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Ngày tạo</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% users.forEach((u, index) => { %>
+                            <tr>
+                                <td><%= index + 1 %></td>
+                                <td><strong>@<%= u.username %></strong></td>
+                                <td><%= u.firstName %> <%= u.lastName %></td>
+                                <td><%= u.email || '-' %></td>
+                                <td>
+                                    <span class="badge <%= u.role === 'admin' ? 'bg-warning text-dark' : 'bg-secondary' %>">
+                                        <%= u.role === 'admin' ? 'Admin' : 'Normal' %>
+                                    </span>
+                                </td>
+                                <td><%= new Date(u.createdAt).toLocaleDateString('vi-VN') %></td>
+                                <td>
+                                    <div class="btn-group">
+                                        <!-- Đổi role -->
+                                        <form action="/users/<%= u._id %>/role" method="POST" class="me-1">
+                                            <% if (u.role === 'normal') { %>
+                                            <input type="hidden" name="role" value="admin">
+                                            <button type="submit" class="btn btn-sm btn-outline-warning" 
+                                                    title="Nâng cấp lên Admin"
+                                                    onclick="return confirm('Nâng cấp user này lên Admin?')">
+                                                <i class="bi bi-arrow-up-circle"></i>
+                                            </button>
+                                            <% } else { %>
+                                            <input type="hidden" name="role" value="normal">
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary" 
+                                                    title="Hạ cấp xuống Normal"
+                                                    onclick="return confirm('Hạ cấp user này xuống Normal?')">
+                                                <i class="bi bi-arrow-down-circle"></i>
+                                            </button>
+                                            <% } %>
+                                        </form>
+                                        
+                                        <!-- Xóa user -->
+                                        <% if (u._id.toString() !== user.id.toString()) { %>
+                                        <form action="/users/<%= u._id %>?_method=DELETE" method="POST">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                                    title="Xóa user"
+                                                    onclick="return confirm('Bạn có chắc muốn xóa user này? Tất cả task của user cũng sẽ bị xóa.')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                        <% } else { %>
+                                        <button class="btn btn-sm btn-outline-secondary" disabled title="Không thể xóa chính mình">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                        <% } %>
+                                    </div>
+                                </td>
+                            </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('partials/footer') %>

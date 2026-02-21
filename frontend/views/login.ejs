@@ -1,0 +1,38 @@
+<%- include('partials/header', { title: 'Đăng nhập - Todo List' }) %>
+
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card shadow">
+            <div class="card-header text-primary text-center border-0 pt-4">
+                <h4 class="mb-0 fw-bold"><i class="bi bi-box-arrow-in-right me-2"></i>Đăng nhập</h4>
+            </div>
+            <div class="card-body p-4 pt-2">
+                <form action="/login" method="POST">
+                    <div class="mb-3">
+                        <label for="username" class="form-label fw-bold">
+                            Username
+                        </label>
+                        <input type="text" class="form-control" id="username" name="username" 
+                               required placeholder="Nhập username...">
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label fw-bold">
+                             Password
+                        </label>
+                        <input type="password" class="form-control" id="password" name="password" 
+                               required placeholder="Nhập password...">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 mb-3 shadow-sm">
+                        Đăng nhập
+                    </button>
+                </form>
+                <hr>
+                <p class="text-center mb-0">
+                    Chưa có tài khoản? <a href="/register">Đăng ký ngay</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('partials/footer') %>

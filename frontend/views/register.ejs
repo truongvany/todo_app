@@ -1,0 +1,82 @@
+<%- include('partials/header', { title: 'Đăng ký - Todo List' }) %>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header text-success text-center border-0 pt-4">
+                <h4 class="mb-0 fw-bold"><i class="bi bi-person-plus me-2"></i>Đăng ký tài khoản</h4>
+            </div>
+            <div class="card-body p-4 pt-2">
+                <form action="/register" method="POST">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="firstName" class="form-label">
+                                Họ <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="firstName" name="firstName" 
+                                   required placeholder="VD: Nguyễn">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="lastName" class="form-label">
+                                Tên <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="lastName" name="lastName" 
+                                   required placeholder="VD: Văn A">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="username" class="form-label">
+                            Username <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control" id="username" name="username" 
+                               required minlength="3" placeholder="Ít nhất 3 ký tự">
+                        <div class="form-text">Username sẽ dùng để đăng nhập</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" 
+                               placeholder="example@email.com">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="password" class="form-label">
+                                Password <span class="text-danger">*</span>
+                            </label>
+                            <input type="password" class="form-control" id="password" name="password" 
+                                   required minlength="6" placeholder="Ít nhất 6 ký tự">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="confirmPassword" class="form-label">
+                                Xác nhận Password <span class="text-danger">*</span>
+                            </label>
+                            <input type="password" class="form-control" id="confirmPassword" 
+                                   name="confirmPassword" required placeholder="Nhập lại password">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100 mb-3">
+                        <i class="bi bi-person-plus"></i> Đăng ký
+                    </button>
+                </form>
+                <hr>
+                <p class="text-center mb-0">
+                    Đã có tài khoản? <a href="/login">Đăng nhập</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Validate password match
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        
+        if (password !== confirmPassword) {
+            e.preventDefault();
+            alert('Mật khẩu xác nhận không khớp!');
+        }
+    });
+</script>
+
+<%- include('partials/footer') %>

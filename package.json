@@ -1,0 +1,26 @@
+{
+  "name": "todo_list",
+  "version": "1.0.0",
+  "description": "Ứng dụng Todo List với Node.js, Express, MongoDB và EJS",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "backend": "cd backend && node server.js",
+    "fullstack": "node server.js",
+    "seed": "node seed.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["todo", "nodejs", "mongodb", "express", "ejs"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "connect-flash": "^0.1.1",
+    "dotenv": "^17.3.1",
+    "ejs": "^4.0.1",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "method-override": "^3.0.0",
+    "mongoose": "^9.2.1"
+  }
+}

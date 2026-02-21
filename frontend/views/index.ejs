@@ -1,0 +1,364 @@
+<%- include('partials/header', { title: 'Trang chủ - Todo List' }) %>
+
+<div class="row">
+    <% if (isLoggedIn) { %>
+    <!-- Form thêm task mới -->
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0 text-primary"><i class="bi bi-plus-circle"></i> Thêm công việc mới</h5>
+            </div>
+            <div class="card-body">
+                <form action="/tasks" method="POST">
+                    <div class="mb-3">
+                        <label for="title" class="form-label fw-bold">Tiêu đề <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="title" name="title" required 
+                               placeholder="Nhập tiêu đề công việc...">
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label fw-bold">Mô tả</label>
+                        <textarea class="form-control" id="description" name="description" rows="2"
+                                  placeholder="Mô tả chi tiết (tùy chọn)..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="dueDate" class="form-label fw-bold">Ngày đến hạn</label>
+                        <input type="date" class="form-control" id="dueDate" name="dueDate">
+                    </div>
+                    <div class="mb-3">
+                        <label for="priority" class="form-label fw-bold">Độ ưu tiên</label>
+                        <select class="form-select" id="priority" name="priority">
+                            <option value="low">Thấp</option>
+                            <option value="medium" selected>Trung bình</option>
+                            <option value="high">Cao</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 shadow-sm">
+                        <i class="bi bi-plus-lg"></i> Thêm công việc
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Thống kê -->
+        <div class="card shadow-sm mt-4">
+            <div class="card-header">
+                <h5 class="mb-0 text-info"><i class="bi bi-bar-chart"></i> Thống kê</h5>
+            </div>
+            <div class="card-body">
+                <% 
+                    const totalTasks = tasks.length;
+                    const completedTasks = tasks.filter(t => t.status === 'completed').length;
+                    const progressPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+                %>
+                <p class="mb-2">
+                    <strong>Tổng số task:</strong> <%= totalTasks %>
+                </p>
+                <p class="mb-2">
+                    <strong>Đã hoàn thành:</strong> <%= completedTasks %>
+                </p>
+                <p class="mb-2">
+                    <strong>Chưa hoàn thành:</strong> <%= totalTasks - completedTasks %>
+                </p>
+                <hr>
+                <p class="mb-2"><strong>Tiến độ tổng thể:</strong></p>
+                <div class="progress mb-2">
+                    <div class="progress-bar bg-success" role="progressbar" 
+                         style="width: <%= progressPercent %>%;"
+                         aria-valuenow="<%= progressPercent %>" aria-valuemin="0" aria-valuemax="100">
+                    </div>
+                </div>
+                <p class="text-center mb-0"><%= progressPercent %>% hoàn thành</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Danh sách tasks -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header text-primary d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-list-task me-2"></i>Danh sách công việc</h5>
+                <span class="badge bg-primary text-white"><%= tasks.length %> task</span>
+            </div>
+            <div class="card-body">
+                <% if (tasks.length === 0) { %>
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox display-1 text-muted"></i>
+                    <p class="text-muted mt-3">Chưa có công việc nào. Hãy thêm công việc mới!</p>
+                </div>
+                <% } else { %>
+                <ul class="list-group" id="taskList">
+                    <% tasks.forEach(task => { %>
+                    <% 
+                        const isFullyCompleted = task.status === 'completed';
+                        const completionPercent = task.assignees.length > 0 
+                            ? Math.round((task.assignees.filter(a => a.isCompleted).length / task.assignees.length) * 100) 
+                            : 0;
+                        const currentUserAssignee = task.assignees.find(a => a.user && a.user._id.toString() === user.id.toString());
+                        const isMyTaskCompleted = currentUserAssignee ? currentUserAssignee.isCompleted : false;
+                        const priorityClass = task.priority === 'high' ? 'high-priority' : 
+                                             task.priority === 'low' ? 'low-priority' : 'medium-priority';
+                    %>
+                    <li class="list-group-item task-card <%= priorityClass %> <%= isFullyCompleted ? 'completed' : '' %> mb-2">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center mb-2">
+                                    <!-- Toggle hoàn thành -->
+                                    <% if (currentUserAssignee) { %>
+                                    <form action="/tasks/<%= task._id %>/toggle" method="POST" class="me-2">
+                                        <button type="submit" class="btn btn-sm <%= isMyTaskCompleted ? 'btn-success' : 'btn-outline-secondary' %>" 
+                                                title="<%= isMyTaskCompleted ? 'Đã hoàn thành' : 'Đánh dấu hoàn thành' %>">
+                                            <i class="bi <%= isMyTaskCompleted ? 'bi-check-circle-fill' : 'bi-circle' %>"></i>
+                                        </button>
+                                    </form>
+                                    <% } %>
+                                    
+                                    <h6 class="mb-0 task-title <%= isFullyCompleted ? 'completed' : '' %>">
+                                        <%= task.title %>
+                                    </h6>
+                                    
+                                    <!-- Priority badge -->
+                                    <span class="badge ms-2 
+                                        <%= task.priority === 'high' ? 'bg-danger' : 
+                                           task.priority === 'medium' ? 'bg-warning text-dark' : 'bg-secondary' %>">
+                                        <%= task.priority === 'high' ? 'Cao' : 
+                                           task.priority === 'medium' ? 'TB' : 'Thấp' %>
+                                    </span>
+                                    
+                                    <!-- Status badge -->
+                                    <span class="badge ms-2 
+                                        <%= task.status === 'completed' ? 'bg-success' : 
+                                           task.status === 'in-progress' ? 'bg-info' : 'bg-secondary' %>">
+                                        <%= task.status === 'completed' ? 'Hoàn thành' : 
+                                           task.status === 'in-progress' ? 'Đang làm' : 'Chờ' %>
+                                    </span>
+                                </div>
+                                
+                                <% if (task.description) { %>
+                                <p class="text-muted small mb-2"><%= task.description %></p>
+                                <% } %>
+                                
+                                <!-- Progress bar cho task có nhiều người -->
+                                <% if (task.assignees.length > 1) { %>
+                                <div class="mb-2">
+                                    <small class="text-muted">Tiến độ: <%= completionPercent %>%</small>
+                                    <div class="progress mt-1">
+                                        <div class="progress-bar <%= completionPercent === 100 ? 'bg-success' : 'bg-info' %>" 
+                                             role="progressbar" style="width: <%= completionPercent %>%;">
+                                        </div>
+                                    </div>
+                                </div>
+                                <% } %>
+                                
+                                <!-- Danh sách assignees -->
+                                <div class="mb-2">
+                                    <small class="text-muted">Người thực hiện:</small>
+                                    <% task.assignees.forEach(assignee => { %>
+                                    <% if (assignee.user) { %>
+                                    <span class="badge assignee-badge <%= assignee.isCompleted ? 'completed' : 'bg-primary' %> me-1">
+                                        <%= assignee.user.firstName %> <%= assignee.user.lastName %>
+                                        <% if (assignee.isCompleted) { %>
+                                        <i class="bi bi-check"></i>
+                                        <% } %>
+                                        <% if (user.role === 'admin' && task.assignees.length > 1) { %>
+                                        <form action="/tasks/<%= task._id %>/assignee/<%= assignee.user._id %>?_method=DELETE" 
+                                              method="POST" style="display: inline;">
+                                            <button type="submit" class="btn-close btn-close-white" 
+                                                    style="font-size: 0.5rem; padding: 0 0 0 4px;"
+                                                    onclick="return confirm('Xóa người này khỏi task?')"></button>
+                                        </form>
+                                        <% } %>
+                                    </span>
+                                    <% } %>
+                                    <% }) %>
+                                </div>
+                                
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar"></i> <%= new Date(task.createdAt).toLocaleDateString('vi-VN') %>
+                                    <% if (task.dueDate) { %>
+                                    | <i class="bi bi-alarm"></i> Hạn: <%= new Date(task.dueDate).toLocaleDateString('vi-VN') %>
+                                    <% } %>
+                                    <% if (task.completedAt) { %>
+                                    | <i class="bi bi-check-lg"></i> Xong: <%= new Date(task.completedAt).toLocaleDateString('vi-VN') %>
+                                    <% } %>
+                                </small>
+                            </div>
+                            
+                            <div class="btn-group">
+                                <!-- Nút phân công (chỉ admin) -->
+                                <% if (user.role === 'admin') { %>
+                                <% const assignedIds = task.assignees.filter(a => a.user).map(a => a.user._id.toString()); %>
+                                <button type="button" class="btn btn-sm btn-outline-info btn-assign"
+                                        data-task-id="<%= task._id %>"
+                                        data-task-title="<%= task.title %>"
+                                        data-assigned-ids="<%= assignedIds.join(',') %>">
+                                    <i class="bi bi-person-plus"></i>
+                                </button>
+                                <% } %>
+                                
+                                <!-- Nút xóa -->
+                                <% if (task.createdBy._id.toString() === user.id.toString() || user.role === 'admin') { %>
+                                <form action="/tasks/<%= task._id %>?_method=DELETE" method="POST" 
+                                      onsubmit="return confirm('Bạn có chắc muốn xóa task này?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                                <% } %>
+                            </div>
+                        </div>
+                    </li>
+                    
+                    <% }) %>
+                </ul>
+                <% } %>
+            </div>
+        </div>
+    </div>
+    
+    <% } else { %>
+    <!-- Trang chào mừng cho khách -->
+    <div class="col-12">
+        <div class="hero-section">
+            <div class="text-center w-100">
+                <!-- Hero Title -->
+                <div class="mb-2">
+                    <span style="font-size:3rem;">✅</span>
+                </div>
+                <h1 class="hero-title mb-3">
+                    Quản lý công việc<br>
+                    <span class="highlight">thông minh hơn</span>
+                </h1>
+                <p class="hero-subtitle mx-auto">
+                    Tạo, phân công và theo dõi tiến độ công việc một cách hiệu quả với <strong>Todo List App</strong>.
+                </p>
+
+                <!-- Feature Cards -->
+                <div class="row justify-content-center g-4 mb-5 mx-0">
+                    <div class="col-md-4 col-sm-6">
+                        <div class="feature-card">
+                            <div class="feature-icon purple">
+                                <i class="bi bi-list-check"></i>
+                            </div>
+                            <h5>Quản lý Tasks</h5>
+                            <p>Tạo, sửa, xóa và theo dõi công việc dễ dàng</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-sm-6">
+                        <div class="feature-card">
+                            <div class="feature-icon teal">
+                                <i class="bi bi-people"></i>
+                            </div>
+                            <h5>Phân công Task</h5>
+                            <p>Admin có thể phân công task cho nhiều người dùng</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-sm-6">
+                        <div class="feature-card">
+                            <div class="feature-icon green">
+                                <i class="bi bi-graph-up-arrow"></i>
+                            </div>
+                            <h5>Theo dõi Tiến độ</h5>
+                            <p>Xem progress bar trực quan cho từng task</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CTA Buttons -->
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <a href="/login" class="btn btn-primary btn-lg px-5">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Đăng nhập
+                    </a>
+                    <a href="/register" class="btn btn-outline-primary btn-lg px-5">
+                        <i class="bi bi-person-plus me-2"></i>Đăng ký
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <% } %>
+</div>
+
+<% if (isLoggedIn && user.role === 'admin') { %>
+<!-- Dữ liệu users nhúng sẵn cho JS -->
+<script id="usersData" type="application/json">
+    <%- JSON.stringify(users.map(u => ({ id: u._id.toString(), name: u.firstName + ' ' + u.lastName, username: u.username, role: u.role }))) %>
+</script>
+
+<!-- Modal phân công duy nhất -->
+<div class="modal fade" id="assignModal" tabindex="-1" aria-labelledby="assignModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="assignModalLabel">
+                    <i class="bi bi-person-plus me-2 text-primary"></i>
+                    <span id="assignModalTitle">Phân công task</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="assignForm" method="POST">
+                <div class="modal-body">
+                    <label class="form-label fw-semibold">Chọn người thực hiện:</label>
+                    <select class="form-select" id="assigneeSelect" name="assigneeId" required>
+                        <option value="">-- Chọn user --</option>
+                    </select>
+                    <div id="noUsersMsg" class="text-muted small mt-2" style="display:none;">
+                        Tất cả mọi người đều đã được phân công.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary" id="assignSubmitBtn">
+                        <i class="bi bi-person-plus"></i> Phân công
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    const usersData = JSON.parse(document.getElementById('usersData').textContent);
+
+    document.querySelectorAll('.btn-assign').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const taskId    = btn.dataset.taskId;
+            const taskTitle = btn.dataset.taskTitle;
+            const assigned  = (btn.dataset.assignedIds || '').split(',').filter(Boolean);
+
+            // Điền tiêu đề
+            document.getElementById('assignModalTitle').textContent = taskTitle;
+
+            // Set form action
+            document.getElementById('assignForm').action = '/tasks/' + taskId + '/assign';
+
+            // Build select options
+            const select = document.getElementById('assigneeSelect');
+            select.innerHTML = '<option value="">-- Chọn user --</option>';
+            const available = usersData.filter(u => !assigned.includes(u.id));
+
+            if (available.length === 0) {
+                document.getElementById('noUsersMsg').style.display = 'block';
+                document.getElementById('assignSubmitBtn').disabled = true;
+            } else {
+                document.getElementById('noUsersMsg').style.display = 'none';
+                document.getElementById('assignSubmitBtn').disabled = false;
+                available.forEach(function (u) {
+                    const opt = document.createElement('option');
+                    opt.value = u.id;
+                    opt.textContent = u.name + ' (@' + u.username + ')' + (u.role === 'admin' ? ' [Admin]' : '');
+                    select.appendChild(opt);
+                });
+            }
+
+            // Tạo Modal instance tại đây (sau khi Bootstrap đã load)
+            const modalEl = document.getElementById('assignModal');
+            const assignModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            assignModal.show();
+        });
+    });
+}());
+</script>
+<% } %>
+
+<%- include('partials/footer') %>
